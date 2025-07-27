@@ -1,15 +1,14 @@
-version: "3.8"
-
 services:
   mailserver:
     image: ghcr.io/docker-mailserver/docker-mailserver:latest
     container_name: mailserver
     hostname: mail.flowpost.org
-    domainname: flowpost.org
     env_file: mailserver.env
     ports:
-      - "993:993"
+      - "143:143"
+      - "465:465"
       - "587:587"
+      - "993:993"
     volumes:
       - ./docker-data/dms/mail-data/:/var/mail/
       - ./docker-data/dms/mail-state/:/var/mail-state/
@@ -17,3 +16,8 @@ services:
       - ./docker-data/dms/config/:/tmp/docker-mailserver/
       - /etc/localtime:/etc/localtime:ro
     restart: always
+    stop_grace_period: 1m
+    healthcheck:
+      test: "ss --listening --ipv4 --tcp | grep --silent ':smtp' || exit 1"
+      timeout: 3s
+      retries: 0
